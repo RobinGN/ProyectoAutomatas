@@ -33,6 +33,7 @@ namespace ProyectoAutomatas
             {("q7", 'n'), "q8"},
             {("q8", 'n'), "q9"},
             {("q9", 'n'), "q10"},
+            {("q10", 'n'), "q25"},
             {("q11", 'n'), "q12"},
             {("q12", 'n'), "q13"},
             {("q13", 'n'), "q14"},
@@ -174,7 +175,8 @@ namespace ProyectoAutomatas
                 Document.LoadHtml(Html);
 
                 return string.Join(" ", Document.DocumentNode.Descendants()
-                    .Where(n => n.NodeType == HtmlNodeType.Text && !string.IsNullOrWhiteSpace(n.InnerText))
+                    .Where(n => n.NodeType == HtmlNodeType.Text && !string.IsNullOrWhiteSpace(n.InnerText)
+                                && n.ParentNode.Name != "script" && n.ParentNode.Name != "style")
                     .Select(n => n.InnerText.Trim()));
             }
             catch
@@ -233,12 +235,12 @@ namespace ProyectoAutomatas
             {
                 string archivoSalida = selection == "emails" ? "Mail.txt" : "Tels.txt";
                 File.WriteAllLines(archivoSalida, resultados);
-                Console.WriteLine($"Resultados guardados en {archivoSalida}");
+                Console.WriteLine($"Resultados almacenados en {archivoSalida}");
                 Console.WriteLine(string.Join("\n", resultados));
             }
             else
             {
-                Console.WriteLine("No se encontraron resultados.");
+                Console.WriteLine("No se encontraron resultados pa.");
             }
         }
     }
