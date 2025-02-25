@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProyectoAutomatas": {
+      "commandName": "Project",
+      "commandLineArgs": "\"Info.txt\" \"b\""
+    }
+  }
+}

@@ -1,18 +1,18 @@
-﻿namespace ProyectoAutomatas
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using HtmlAgilityPack;
+
+namespace ProyectoAutomatas
 {
-    using System;
-    using System.IO;
-    using System.Xml;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using HtmlAgilityPack;
     internal class Program
     {
         public static char[] Nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         public static char[] Letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
         public static char[] Dot = { '.' };
         public static char[] At = { '@' };
         public static char[] SLine = ['-'];
@@ -72,6 +72,7 @@
             string IState = "q0";
             string AState = IState;
             char Initial = 'y';
+
             foreach (char Current in input)
             {
                 Initial = 'y';
@@ -82,12 +83,12 @@
                     Initial = 'v';
                 else if (At.Contains(Current))
                     Initial = '@';
-                else if (SLine.Contains(Current))
-                    Initial = '-';
-                else if (DLine.Contains(Current))
-                    Initial = '_';
                 else if (Dot.Contains(Current))
                     Initial = '.';
+                /*else if (SLine.Contains(Current))
+                    Initial = '-';
+                else if (DLine.Contains(Current))
+                    Initial = '_';*/
 
                 if (AutomatonMails.TryGetValue((AState, Initial), out string NState))
                 {
@@ -104,6 +105,7 @@
                     AState = IState;
                 }
             }
+
             if (MailsFinalStates.Contains(AState))
             {
                 Mails.Add(Mail);
@@ -119,6 +121,7 @@
             string IState = "q0";
             string AState = IState;
             char Initial = 'y';
+
             foreach (char Current in input)
             {
                 Initial = 'y';
@@ -149,10 +152,12 @@
                     AState = IState;
                 }
             }
+
             if (TelsFinalState.Contains(AState))
             {
                 Telephones.Add(Tel);
             }
+
             return Telephones;
         }
 
@@ -160,75 +165,77 @@
         {
             try
             {
-                //HttpClient Client = new HttpClient();
-                HttpClient Client = new();
+                using HttpClient Client = new HttpClient();
                 string Html = await Client.GetStringAsync(site);
-                //HtmlDocument Document = new HtmlDocument();
-                HtmlDocument Document = new();
+                HtmlDocument Document = new HtmlDocument();
                 Document.LoadHtml(Html);
 
-                return string.Join(" ", Document.DocumentNode.Descendants().Where(n => n.NodeType == HtmlNodeType.Text && !string.IsNullOrWhiteSpace(n.InnerText)).Select(n => n.InnerText.Trim()));
+                return string.Join(" ", Document.DocumentNode.Descendants()
+                    .Where(n => n.NodeType == HtmlNodeType.Text && !string.IsNullOrWhiteSpace(n.InnerText))
+                    .Select(n => n.InnerText.Trim()));
             }
-            catch (Exception e)
+            catch
             {
                 return "";
             }
-
         }
 
-        static async Task Main()
+        static async Task Main(string[] args)
         {
-            string TextFile = @"C:\Users\carlo\OneDrive\Escritorio\Trabajos\ICC\6to\Automatas\Proyecto\Chido\ProyectoAutomatas\Info.txt";//Necesito poner la verdadera direccion del archivo en mi compu
-            string[] Page = File.ReadAllLines(TextFile);
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Uso: ProyectoAutomatas.exe <archivo_entrada> <a|b>");
+                Console.WriteLine("Ejemplo: ProyectoAutomatas.exe Info.txt a");
+                return;
+            }
+
+            string inputFile = args[0];
+            string selection = args[1].ToLower();
+
+            if (!File.Exists(inputFile))
+            {
+                Console.WriteLine($"Error: El archivo {inputFile} no existe.");
+                return;
+            }
+
+            if (selection != "a" && selection != "b")
+            {
+                Console.WriteLine("Error: Selección inválida. Use 'a' para correos o 'b' para teléfonos.");
+                return;
+            }
+
+            string[] Page = File.ReadAllLines(inputFile);
 
             if (Page.Length == 0)
             {
-                Console.WriteLine("Al archivo no le metiste nada bro");
+                Console.WriteLine("El archivo está vacío.");
                 return;
             }
 
-            Console.WriteLine("Automatas\nBienvenido al proyecto, elija la opción de la que desee extraer de su archivo:");
-            Console.WriteLine("a) Emails \nb) Telefonos");
-            string Selection = Console.ReadLine();
-
-            if (!(Selection == "a" || Selection == "b"))
+            List<string> resultados = new List<string>();
+            foreach (string url in Page)
             {
-                Console.WriteLine("Eso no se puede bro");
-                return;
-            }
-
-            List<string> List = new List<string>();
-            foreach (string W in Page)
-            {
-                string Info = await WebText(W);
-                if (Selection == "a")
+                string contenido = await WebText(url);
+                if (selection == "a")
                 {
-                    List.AddRange(InputsMails(Info));
+                    resultados.AddRange(InputsMails(contenido));
                 }
-                else if (Selection == "b")
+                else
                 {
-                    List.AddRange(InputsTelephones(Info));
+                    resultados.AddRange(InputsTelephones(contenido));
                 }
             }
 
-            if (List.Count > 0)
+            if (resultados.Count > 0)
             {
-                if (Selection == "a")
-                {
-                    File.WriteAllLines(@"C:\Users\carlo\OneDrive\Escritorio\Trabajos\ICC\6to\Automatas\Proyecto\Chido\ProyectoAutomatas\Mail.txt", List);
-                    List.ForEach(Console.WriteLine);
-                    Console.WriteLine("Mails almacenados");
-                }
-                else if (Selection == "b")
-                {
-                    File.WriteAllLines(@"C:\Users\carlo\OneDrive\Escritorio\Trabajos\ICC\6to\Automatas\Proyecto\Chido\ProyectoAutomatas\Tels.txt", List);
-                    List.ForEach(Console.WriteLine);
-                    Console.WriteLine("Telefonos almacenados");
-                }
+                string archivoSalida = selection == "a" ? "Mail.txt" : "Tels.txt";
+                File.WriteAllLines(archivoSalida, resultados);
+                Console.WriteLine($"Resultados guardados en {archivoSalida}");
+                Console.WriteLine(string.Join("\n", resultados));
             }
             else
             {
-                Console.WriteLine("No hay archivos bro skill issue");
+                Console.WriteLine("No se encontraron resultados.");
             }
         }
     }
