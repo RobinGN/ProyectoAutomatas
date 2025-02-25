@@ -2,7 +2,7 @@
   "profiles": {
     "ProyectoAutomatas": {
       "commandName": "Project",
-      "commandLineArgs": "\"Info.txt\" \"b\""
+      "commandLineArgs": "\"Info.txt\" \"emails\""
     }
   }
 }

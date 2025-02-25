@@ -52,7 +52,7 @@ namespace ProyectoAutomatas
         public static Dictionary<(string, char), string> AutomatonMails = new()
         {
             {("q0", 'n'), "q1"}, {("q0", 'v'), "q1"},
-            {("q1", 'n'), "q1"}, {("q1", 'v'), "q1"}, {("q1", '.'), "q2"}, {("q1", '@'), "q3"},
+            {("q1", 'n'), "q1"}, {("q1", 'v'), "q1"}, {("q1", '.'), "q2"}, {("q1", '_'), "q2"}, {("q1", '-'), "q2"}, {("q1", '@'), "q3"}, 
             {("q2", 'n'), "q1"}, {("q2", 'v'), "q1"},
             {("q3", 'v'), "q4"},
             {("q4", 'v'), "q4"}, {("q4", '.'), "q5"},
@@ -79,16 +79,19 @@ namespace ProyectoAutomatas
 
                 if (Nums.Contains(Current))
                     Initial = 'n';
-                else if (Letters.Contains(Current))
+                else if (Letters.Contains(char.ToLower(Current)))
+                {
                     Initial = 'v';
+                }
+                else if (SLine.Contains(Current))
+                    Initial = '-';
+                else if (DLine.Contains(Current))
+                    Initial = '_';
                 else if (At.Contains(Current))
                     Initial = '@';
                 else if (Dot.Contains(Current))
                     Initial = '.';
-                /*else if (SLine.Contains(Current))
-                    Initial = '-';
-                else if (DLine.Contains(Current))
-                    Initial = '_';*/
+                
 
                 if (AutomatonMails.TryGetValue((AState, Initial), out string NState))
                 {
@@ -184,8 +187,8 @@ namespace ProyectoAutomatas
         {
             if (args.Length != 2)
             {
-                Console.WriteLine("Uso: ProyectoAutomatas.exe <archivo_entrada> <a|b>");
-                Console.WriteLine("Ejemplo: ProyectoAutomatas.exe Info.txt a");
+                Console.WriteLine("Uso: ProyectoAutomatas.exe <archivo_entrada> <emails|telephones>");
+                Console.WriteLine("Ejemplo: ProyectoAutomatas.exe Info.txt emails");
                 return;
             }
 
@@ -194,13 +197,13 @@ namespace ProyectoAutomatas
 
             if (!File.Exists(inputFile))
             {
-                Console.WriteLine($"Error: El archivo {inputFile} no existe.");
+                Console.WriteLine($"Tu archivo {inputFile} no existe pa.");
                 return;
             }
 
-            if (selection != "a" && selection != "b")
+            if (selection != "emails" && selection != "telephones")
             {
-                Console.WriteLine("Error: Selección inválida. Use 'a' para correos o 'b' para teléfonos.");
+                Console.WriteLine("Esa selección no se puede bro. Usa 'emails' para correos o 'telephones' para teléfonos.");
                 return;
             }
 
@@ -216,7 +219,7 @@ namespace ProyectoAutomatas
             foreach (string url in Page)
             {
                 string contenido = await WebText(url);
-                if (selection == "a")
+                if (selection == "emails")
                 {
                     resultados.AddRange(InputsMails(contenido));
                 }
@@ -228,7 +231,7 @@ namespace ProyectoAutomatas
 
             if (resultados.Count > 0)
             {
-                string archivoSalida = selection == "a" ? "Mail.txt" : "Tels.txt";
+                string archivoSalida = selection == "emails" ? "Mail.txt" : "Tels.txt";
                 File.WriteAllLines(archivoSalida, resultados);
                 Console.WriteLine($"Resultados guardados en {archivoSalida}");
                 Console.WriteLine(string.Join("\n", resultados));
